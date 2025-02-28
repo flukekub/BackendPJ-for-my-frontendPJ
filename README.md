@@ -13,7 +13,7 @@
 ### 3. Go to [pgAdmin 4](http://localhost:5050/)
    - Open your browser and navigate to pgAdmin 4.
    
-### 4. Click the "Add New Server" Button
+### 4. Click the Create Database
    - You should see a page like this:
    
    ![Add New Server](https://github.com/user-attachments/assets/078e9f07-7eb8-4c8f-ae17-7820e75806e6)
