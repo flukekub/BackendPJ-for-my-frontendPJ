@@ -102,21 +102,75 @@ exports.getMe = async (req, res, next) => {
 };
 
 exports.getUsers = async (req, res) => {
+    
     try {
-        const data = await User.getAll();
-
-        res.status(200).json({success: true, data});
-    } 
-    catch (err) {
-        res.status(500).json({success: false, message: err.message || "Some error occurred while retrieving all users"});
-    }
+            
+            //Pagination
+            const page=parseInt(req.query.page,10)||1;
+            const limit=parseInt(req.query.limit,10)||25;
+            
+            const offset=(page-1)*limit;
+            const endIndex=page*limit;
+            const total=await User.countAll();
+    
+            const data = await User.getAll(limit,offset );
+    
+            
+            //Pagingation result
+            const pagination ={};
+    
+            if(endIndex<total){
+                pagination.next={
+                    page:page+1,
+                    limit
+                }
+            }
+    
+            if( offset >0){
+                pagination.prev={
+                    page:page-1,
+                    limit
+                }
+            }
+            res.status(200).json({success: true, data,pagination});
+        } 
+        catch (err) {
+            res.status(500).json({success: false, message: err.message || "Some error occurred while retrieving all users"});
+        }
 };
 
 exports.getOnlyUsers = async (req, res) => {
+    
     try {
-        const data = await User.getAllUsers();
+            
+        //Pagination
+        const page=parseInt(req.query.page,10)||1;
+        const limit=parseInt(req.query.limit,10)||25;
+        
+        const offset=(page-1)*limit;
+        const endIndex=page*limit;
+        const total=await User.countAllUsers();
 
-        res.status(200).json({success: true, data});
+        const data = await User.getAllUsers(limit,offset );
+
+        
+        //Pagingation result
+        const pagination ={};
+
+        if(endIndex<total){
+            pagination.next={
+                page:page+1,
+                limit
+            }
+        }
+
+        if( offset >0){
+            pagination.prev={
+                page:page-1,
+                limit
+            }
+        }
+        res.status(200).json({success: true, data,pagination});
     } 
     catch (err) {
         res.status(500).json({success: false, message: err.message || "Some error occurred while retrieving only users"});
@@ -124,10 +178,37 @@ exports.getOnlyUsers = async (req, res) => {
 };
 
 exports.getOnlyAdmins = async (req, res) => {
+   
     try {
-        const data = await User.getAllAdmins();
+            
+        //Pagination
+        const page=parseInt(req.query.page,10)||1;
+        const limit=parseInt(req.query.limit,10)||25;
+        
+        const offset=(page-1)*limit;
+        const endIndex=page*limit;
+        const total=await User.countAllAdmins();
 
-        res.status(200).json({success: true, data});
+        const data = await User.getAllAdmins(limit,offset );
+
+        
+        //Pagingation result
+        const pagination ={};
+
+        if(endIndex<total){
+            pagination.next={
+                page:page+1,
+                limit
+            }
+        }
+
+        if( offset >0){
+            pagination.prev={
+                page:page-1,
+                limit
+            }
+        }
+        res.status(200).json({success: true, data,pagination});
     } 
     catch (err) {
         res.status(500).json({success: false, message: err.message || "Some error occurred while retrieving only admins"});

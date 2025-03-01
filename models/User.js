@@ -11,11 +11,11 @@ const User = function (user) {
     this.role = user.role;
 };
 
-User.getAll = async () => {
-    const query = "SELECT * FROM users;";
+User.getAll = async (limit, offset) => {
+    const query = "SELECT * FROM users ORDER BY userID LIMIT $1 OFFSET $2;";
 
     try {
-        const res = await sql.query(query);
+        const res = await sql.query(query,[limit, offset]);
 
         console.log("All users:", res.rows);
         return res.rows;
@@ -26,11 +26,27 @@ User.getAll = async () => {
     }
 };
 
-User.getAllUsers = async () => {
-    const query = "SELECT * FROM users WHERE role = 'user';";
+User.countAll = async ()=>{
+    const query = "SELECT COUNT(*) FROM users";
+    try {
+        const result = await sql.query(query);
+
+        
+        return parseInt(result.rows[0].count, 10);
+    } 
+    catch (err) {
+        console.log("count users error:", err);
+        throw err;
+    }
+    
+    
+};
+
+User.getAllUsers = async (limit, offset) => {
+    const query = "SELECT * FROM users WHERE role = 'user' ORDER BY userID LIMIT $1 OFFSET $2;";
 
     try {
-        const res = await sql.query(query);
+        const res = await sql.query(query,[limit, offset]);
 
         console.log("All only users:", res.rows);
         return res.rows;
@@ -40,12 +56,26 @@ User.getAllUsers = async () => {
         throw err;
     }
 };
+User.countAllUsers = async ()=>{
+    const query = "SELECT COUNT(*) FROM users WHERE role = 'user';";
+    try {
+        const result = await sql.query(query);
 
-User.getAllAdmins = async () => {
-    const query = "SELECT * FROM users WHERE role = 'admin';";
+        
+        return parseInt(result.rows[0].count, 10);
+    } 
+    catch (err) {
+        console.log("count users error:", err);
+        throw err;
+    }
+    
+    
+};
+User.getAllAdmins = async (limit, offset) => {
+    const query = "SELECT * FROM users WHERE role = 'admin' ORDER BY userID LIMIT $1 OFFSET $2;";
 
     try {
-        const res = await sql.query(query);
+        const res = await sql.query(query,[limit, offset]);
 
         console.log("All only admins:", res.rows);
         return res.rows;
@@ -54,6 +84,22 @@ User.getAllAdmins = async () => {
         console.log("Get only admins error:", err);
         throw err;
     }
+};
+
+User.countAllAdmins = async ()=>{
+    const query = "SELECT COUNT(*) FROM users WHERE role = 'admin';";
+    try {
+        const result = await sql.query(query);
+
+        
+        return parseInt(result.rows[0].count, 10);
+    } 
+    catch (err) {
+        console.log("count admins error:", err);
+        throw err;
+    }
+    
+    
 };
 
 User.findById = async (id) => {

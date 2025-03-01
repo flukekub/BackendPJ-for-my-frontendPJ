@@ -7,11 +7,11 @@ const Dentist = function (dentist) {
     this.expertise = dentist.expertise;
 };
 
-Dentist.getAll = async () => {
-    const query = "SELECT * FROM dentists;";
+Dentist.getAll = async (limit, offset) => {
+    const query = "SELECT * FROM dentists ORDER BY dentistID LIMIT $1 OFFSET $2;";
 
     try {
-        const res = await sql.query(query);
+        const res = await sql.query(query,[limit, offset]);
 
         console.log("All dentists:", res.rows);
         return res.rows;
@@ -21,6 +21,7 @@ Dentist.getAll = async () => {
         throw err;
     }
 };
+
 Dentist.countAll = async () => {
     const query = "SELECT COUNT(*) FROM dentists";
     try {
@@ -30,7 +31,7 @@ Dentist.countAll = async () => {
         return parseInt(result.rows[0].count, 10);
     } 
     catch (err) {
-        console.log("count bookings error:", err);
+        console.log("count dentists error:", err);
         throw err;
     }
 };
