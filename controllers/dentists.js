@@ -2,13 +2,39 @@ const Dentist = require("../models/Dentist");
 
 exports.getDentists = async (req, res) => {
     try {
-        const data = await Dentist.getAll();
-
-        res.status(200).json({success: true, data});
-    } 
-    catch (err) {
-        res.status(500).json({success: false, message: err.message || "Some error occurred while retrieving all dentists"});
-    }
+            
+            //Pagination
+            const page=parseInt(req.query.page,10)||1;
+            const limit=parseInt(req.query.limit,10)||25;
+            
+            const offset=(page-1)*limit;
+            const endIndex=page*limit;
+            const total=await Dentist.countAll();
+    
+            const data = await Dentist.getAll(limit,offset );
+    
+            
+            //Pagingation result
+            const pagination ={};
+    
+            if(endIndex<total){
+                pagination.next={
+                    page:page+1,
+                    limit
+                }
+            }
+    
+            if( offset >0){
+                pagination.prev={
+                    page:page-1,
+                    limit
+                }
+            }
+            res.status(200).json({success: true, data,pagination});
+        } 
+        catch (err) {
+            res.status(500).json({success: false, message: err.message || "Some error occurred while retrieving all dentists"});
+        }
 };
 
 exports.getDentist = async (req, res) => {

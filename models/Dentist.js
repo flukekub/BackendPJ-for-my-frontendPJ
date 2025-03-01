@@ -21,7 +21,19 @@ Dentist.getAll = async () => {
         throw err;
     }
 };
+Dentist.countAll = async () => {
+    const query = "SELECT COUNT(*) FROM dentists";
+    try {
+        const result = await sql.query(query);
 
+        
+        return parseInt(result.rows[0].count, 10);
+    } 
+    catch (err) {
+        console.log("count bookings error:", err);
+        throw err;
+    }
+};
 Dentist.findById = async (id) => {
     const query = "SELECT * FROM dentists WHERE DentistID = $1;";
     const values = [id];
