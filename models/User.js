@@ -26,6 +26,36 @@ User.getAll = async () => {
     }
 };
 
+User.getAllUsers = async () => {
+    const query = "SELECT * FROM users WHERE role = 'user';";
+
+    try {
+        const res = await sql.query(query);
+
+        console.log("All only users:", res.rows);
+        return res.rows;
+    } 
+    catch (err) {
+        console.log("Get only users error:", err);
+        throw err;
+    }
+};
+
+User.getAllAdmins = async () => {
+    const query = "SELECT * FROM users WHERE role = 'admin';";
+
+    try {
+        const res = await sql.query(query);
+
+        console.log("All only admins:", res.rows);
+        return res.rows;
+    } 
+    catch (err) {
+        console.log("Get only admins error:", err);
+        throw err;
+    }
+};
+
 User.findById = async (id) => {
     const query = "SELECT * FROM users WHERE userID = $1;";
     const values = [id];

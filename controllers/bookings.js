@@ -39,7 +39,7 @@ exports.createBooking = async (req, res) => {
         temp = await Booking.findByUserId(userID);
     }
     catch (err) {
-        console.log("Warning: Error didn't find this userID in booking, proceeding anyway.", err.message);
+        console.log(`Warning: User with ID ${userID} not found, proceeding anyway.`, err.message);
     }
 
     if (temp) {
@@ -58,20 +58,20 @@ exports.createBooking = async (req, res) => {
     }
 };
 
-
 exports.updateBooking = async (req, res) => {
     const {userID, dentistID, date} = req.body;
+    const {bookingID} = req.params;
 
     try {
-        const data = await Booking.updateById(req.params.bookingID, {userID, dentistID, date});
+        const data = await Booking.updateById(bookingID, {userID, dentistID, date});
 
         if (!data) {
-            return res.status(404).json({success: false, message: `Booking with ID ${req.params.bookingID} not found.`});
+            return res.status(404).json({success: false, message: `Booking with ID ${bookingID} not found.`});
         }
         res.status(200).json({success: true, data});
     } 
     catch (err) {
-        res.status(500).json({success: false, message: `Error updating booking with ID ${req.params.bookingID}.`});
+        res.status(500).json({success: false, message: `Error updating booking with ID ${bookingID}.`});
     }
 };
 

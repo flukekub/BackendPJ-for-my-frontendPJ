@@ -101,3 +101,72 @@ exports.getMe = async (req, res, next) => {
     }
 };
 
+exports.getUsers = async (req, res) => {
+    try {
+        const data = await User.getAll();
+
+        res.status(200).json({success: true, data});
+    } 
+    catch (err) {
+        res.status(500).json({success: false, message: err.message || "Some error occurred while retrieving all users"});
+    }
+};
+
+exports.getOnlyUsers = async (req, res) => {
+    try {
+        const data = await User.getAllUsers();
+
+        res.status(200).json({success: true, data});
+    } 
+    catch (err) {
+        res.status(500).json({success: false, message: err.message || "Some error occurred while retrieving only users"});
+    }
+};
+
+exports.getOnlyAdmins = async (req, res) => {
+    try {
+        const data = await User.getAllAdmins();
+
+        res.status(200).json({success: true, data});
+    } 
+    catch (err) {
+        res.status(500).json({success: false, message: err.message || "Some error occurred while retrieving only admins"});
+    }
+};
+
+exports.updateUser = async (req, res) => {
+    const {name, email, phone, password, role} = req.body;
+    const {userID} = req.params;
+
+    try {
+        const data = await User.updateById(userID, {name, email, phone, password, role});
+
+        if (!data) {
+            return res.status(404).json({success: false, message: `User with ID ${userID} not found.`});
+        }
+        res.status(200).json({success: true, data});
+    } 
+    catch (err) {
+        res.status(500).json({success: false, message: `Error updating user with ID ${userID}.`});
+    }
+};
+
+exports.deleteUser = async (req, res) => {
+    if (!req.body) {
+        return res.status(400).json({success: false, message: "Content cannot be empty!"});
+    }
+
+    const {userID} = req.params;
+
+    try {
+        const data = await User.remove(userID);
+        
+        if (!data) {
+            return res.status(404).json({success: false, message: `User with ID ${userID} not found.`});
+        }
+        res.status(200).json({success: true, message: "User deleted successfully!"});
+    } 
+    catch (err) {
+        res.status(500).json({success: false, message: `Could not delete user with ID ${userID}.`});
+    }
+};

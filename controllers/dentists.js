@@ -48,17 +48,18 @@ exports.createDentist = async (req, res) => {
 
 exports.updateDentist = async (req, res) => {
     const {name, experience, expertise} = req.body;
+    const {dentistID} = req.params;
 
     try {
-        const data = await Dentist.updateById(req.params.dentistID, {name, experience, expertise});
+        const data = await Dentist.updateById(dentistID, {name, experience, expertise});
 
         if (!data) {
-            return res.status(404).json({success: false, message: `Dentist with ID ${req.params.dentistID} not found.`});
+            return res.status(404).json({success: false, message: `Dentist with ID ${dentistID} not found.`});
         }
         res.status(200).json({success: true, data});
     } 
     catch (err) {
-        res.status(500).json({success: false, message: `Error updating dentist with ID ${req.params.dentistID}.`});
+        res.status(500).json({success: false, message: `Error updating dentist with ID ${dentistID}.`});
     }
 };
 
