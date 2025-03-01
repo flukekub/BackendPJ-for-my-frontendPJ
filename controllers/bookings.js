@@ -42,6 +42,9 @@ exports.createBooking = async (req, res) => {
         res.status(201).json({success: true, data});
     } 
     catch (err) {
+        if (err.kind === "already_booked") {
+            return res.status(400).json({success: false, message: err.message});
+        }
         res.status(500).json({success: false, message: err.message || "Error creating booking"});
     }
 };
