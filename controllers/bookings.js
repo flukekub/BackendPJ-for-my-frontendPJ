@@ -60,16 +60,28 @@ exports.createBooking = async (req, res) => {
         return res.status(400).json({success: false, message: "All fields (userID, dentistID, date) are required!"});
     }
 
-    let temp = null;
+    let existingBooking  = null;
     try { 
-        temp = await Booking.findByUserId(userID);
+        existingBooking  = await Booking.findByUserId(userID);
     }
     catch (err) {
         console.log(`Warning: User with ID ${userID} not found, proceeding anyway.`, err.message);
     }
 
-    if (temp) {
+    if (existingBooking ) {
         return res.status(400).json({success: false, message: "User can book only one session!"}); 
+    }
+
+    let dentistBooking = null;
+    try {
+        dentistBooking = await Booking.findByDentistIdAndDate(dentistID, date);
+    } 
+    catch (err) {
+        console.log(`Warning: Dentist with ID ${dentistID} and booking date at ${date} not found, proceeding anyway.`, err.message);
+    }
+
+    if (dentistBooking) {
+        return res.status(400).json({success: false, message: `This dentist with ID ${dentistID} is already booked for this date!`});
     }
 
     const newBooking = {userID, dentistID, date};

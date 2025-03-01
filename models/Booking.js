@@ -79,6 +79,25 @@ Booking.findByUserId = async (id) => {
     }
 };
 
+Booking.findByDentistIdAndDate = async (id, date) => {
+    const query = "SELECT * FROM bookings WHERE dentistID = $1 AND date = $2;";
+    const values = [id, date];
+
+    try {
+        const res = await sql.query(query, values);
+
+        if (res.rows.length === 0) {
+            throw {kind: "not_found"};
+        }
+        console.log("Found booking:", res.rows[0]);
+        return res.rows[0];
+    } 
+    catch (err) {
+        console.log("Get booking error:", err);
+        throw err;
+    }
+};
+
 Booking.create = async (newBooking) => {
     const query = "INSERT INTO bookings (userID, dentistID, date) VALUES ($1, $2, $3) RETURNING *;";
     const values = [newBooking.userID, newBooking.dentistID, newBooking.date];
