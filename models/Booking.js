@@ -41,19 +41,30 @@ Booking.findById = async (id) => {
     }
 };
 
-Booking.create = async (newBooking) => {
-    
-    const checkQuery = "SELECT * FROM bookings WHERE userID = $1;";
-    const checkValues = [newBooking.userID];
+Booking.findByUserId = async (id) => {
+    const query = "SELECT * FROM bookings WHERE userID = $1;";
+    const values = [id];
 
     try {
-        const checkRes = await sql.query(checkQuery, checkValues);
-        if (checkRes.rows.length > 0) {
-            throw {kind: "already_booked", message: "User already has an existing booking."};
-        }
-        const query = "INSERT INTO bookings (userID, dentistID, date) VALUES ($1, $2, $3) RETURNING *;";
-        const values = [newBooking.userID, newBooking.dentistID, newBooking.date];
+        const res = await sql.query(query, values);
 
+        if (res.rows.length === 0) {
+            throw {kind: "not_found"};
+        }
+        console.log("Found booking:", res.rows[0]);
+        return res.rows[0];
+    } 
+    catch (err) {
+        console.log("Get booking error:", err);
+        throw err;
+    }
+};
+
+Booking.create = async (newBooking) => {
+    const query = "INSERT INTO bookings (userID, dentistID, date) VALUES ($1, $2, $3) RETURNING *;";
+    const values = [newBooking.userID, newBooking.dentistID, newBooking.date];
+
+    try {
         const res = await sql.query(query, values);
 
         console.log("Created booking:", res.rows[0]);
