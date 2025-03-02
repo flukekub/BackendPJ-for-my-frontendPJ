@@ -12,6 +12,14 @@ const connection = new Pool({
 
 async function createTables() {
     try {
+        // const dropTablesQuery = `
+        //     DROP TABLE IF EXISTS bookings;
+        //     DROP TABLE IF EXISTS users;
+        //     DROP TABLE IF EXISTS dentists;
+        // `;
+        // await connection.query(dropTablesQuery);
+        // console.log("Existing tables dropped");
+        
         const usersQuery = `
             CREATE TABLE IF NOT EXISTS users (
                 UserID SERIAL PRIMARY KEY,
