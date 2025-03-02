@@ -53,7 +53,7 @@ exports.createBooking = async (req, res) => {
         console.log(`Warning: User with ID ${userID} not found, proceeding anyway.`, err.message);
     }
 
-    if (existingBooking ) {
+    if (existingBooking) {
         return res.status(400).json({success: false, message: "User can book only one session!"}); 
     }
 
@@ -130,7 +130,51 @@ exports.getMeBooking = async (req, res, next) => {
         console.error("Error fetching booking:", err);
         res.status(404).json({success: false, message: `Booking with from user with ID ${userID} not found.`});
     }
-}
+};
+
+exports.createMeBooking = async (req, res, next) => {
+    const {dentistID, date} = req.body;
+    const {userID} = req.user;
+
+    if (!dentistID || !date) {
+        return res.status(400).json({success: false, message: "All fields (dentistID, date) are required!"});
+    }
+
+    let existingBooking  = null;
+    try { 
+        existingBooking  = await Booking.findByUserId(userID);
+    }
+    catch (err) {
+        console.log(`Warning: User with ID ${userID} not found, proceeding anyway.`, err.message);
+    }
+
+    if (existingBooking) {
+        return res.status(400).json({success: false, message: "User can book only one session!"}); 
+    }
+
+    let dentistBooking = null;
+    try {
+        dentistBooking = await Booking.findByDentistIdAndDate(dentistID, date);
+    } 
+    catch (err) {
+        console.log(`Warning: Dentist with ID ${dentistID} and booking date at ${date} not found, proceeding anyway.`, err.message);
+    }
+
+    if (dentistBooking) {
+        return res.status(400).json({success: false, message: `This dentist with ID ${dentistID} is already booked for this date!`});
+    }
+
+    const newBooking = {userID, dentistID, date};
+    
+    try {
+        const data = await Booking.create(newBooking);
+
+        res.status(201).json({success: true, data});
+    } 
+    catch (err) {
+        res.status(500).json({success: false, message: err.message || "Error creating booking"});
+    }
+};
 
 exports.updateMeBooking = async (req, res) => {
     const {dentistID, date} = req.body;
