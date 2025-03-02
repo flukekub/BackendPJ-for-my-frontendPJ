@@ -1,5 +1,4 @@
 const Booking = require("../models/Booking");
-const Dentist = require("../models/Dentist");
 
 exports.getBookings = async (req, res) => {
     try {
@@ -154,13 +153,6 @@ exports.updateMeBooking = async (req, res) => {
 
     if (!dentistID || !date) {
         return res.status(400).json({success: false, message: "All fields (dentistID, date) are required!"});
-    }
-
-    try {
-        await Dentist.findById(dentistID);
-    }
-    catch (err) {
-        return res.status(404).json({success: false, message: `denstist with ID ${dentistID} not found`});
     }
 
     let userBooking  = null;
