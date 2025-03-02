@@ -7,34 +7,21 @@ const Dentist = function (dentist) {
     this.expertise = dentist.expertise;
 };
 
-Dentist.getAll = async (limit, offset) => {
-    const query = "SELECT * FROM dentists ORDER BY dentistID LIMIT $1 OFFSET $2;";
+Dentist.getAll = async (lastID, limit) => {
+    const query = "SELECT * FROM dentists WHERE dentistID > $1 ORDER BY dentistID LIMIT $2;";
 
     try {
-        const res = await sql.query(query,[limit, offset]);
+        const res = await sql.query(query, [lastID, limit]);
 
         console.log("All dentists:", res.rows);
         return res.rows;
     } 
     catch (err) {
-        console.log("Get dentists error:", err);
+        console.error("Get dentists error:", err);
         throw err;
     }
 };
 
-Dentist.countAll = async () => {
-    const query = "SELECT COUNT(*) FROM dentists";
-    try {
-        const result = await sql.query(query);
-
-        
-        return parseInt(result.rows[0].count, 10);
-    } 
-    catch (err) {
-        console.log("count dentists error:", err);
-        throw err;
-    }
-};
 Dentist.findById = async (id) => {
     const query = "SELECT * FROM dentists WHERE DentistID = $1;";
     const values = [id];

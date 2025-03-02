@@ -18,11 +18,12 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(mongoSanitize());
 app.use(xss());
-const limiter=rateLimit({
-    windowsMs:10*60*1000,//10 mins
-    max: 100
-});
-app.use(limiter);
+app.use(
+    rateLimit({
+        windowMs: 10 * 60 * 1000,
+        max: 1000
+    })
+);
 app.use(hpp());
 app.use(cors());
 

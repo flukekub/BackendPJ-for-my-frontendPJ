@@ -7,35 +7,19 @@ const Booking = function (booking) {
     this.date = booking.date;
 };
 
-Booking.getAll = async (limit, offset) => {
-    const query = "SELECT * FROM bookings ORDER BY bookingID LIMIT $1 OFFSET $2;";
+Booking.getAll = async (lastID, limit) => {
+    const query = "SELECT * FROM bookings WHERE bookingID > $1 ORDER BY bookingID LIMIT $2;";
 
     try {
-        const res = await sql.query(query,[limit, offset]);
+        const res = await sql.query(query, [lastID, limit]);
 
         console.log("All bookings:", res.rows);
         return res.rows;
     } 
     catch (err) {
-        console.log("Get bookings error:", err);
+        console.error("Get bookings error:", err);
         throw err;
     }
-};
-
-Booking.countAll = async ()=>{
-    const query = "SELECT COUNT(*) FROM bookings";
-    try {
-        const result = await sql.query(query);
-
-        //console.log("All bookings:", res.rows);
-        return parseInt(result.rows[0].count, 10);
-    } 
-    catch (err) {
-        console.log("count bookings error:", err);
-        throw err;
-    }
-    
-    
 };
 
 Booking.findById = async (id) => {

@@ -2,38 +2,23 @@ const Booking = require("../models/Booking");
 
 exports.getBookings = async (req, res) => {
     try {
-        
-        //Pagination
-        const page=parseInt(req.query.page,10)||1;
-        const limit=parseInt(req.query.limit,10)||25;
-        
-        const offset=(page-1)*limit;
-        const endIndex=page*limit;
-        const total=await Booking.countAll();
+        const limit = parseInt(req.query.limit, 10) || 25;
+        const lastID = parseInt(req.query.lastID, 10) || 0;
 
-        const data = await Booking.getAll(limit,offset );
+        const data = await Booking.getAll(lastID, limit);
 
-        
-        //Pagingation result
-        const pagination ={};
-
-        if(endIndex<total){
-            pagination.next={
-                page:page+1,
+        const pagination = {};
+        if (data.length > 0) {
+            pagination.next = {
+                lastID: data[data.length - 1].bookingID,
                 limit
-            }
+            };
         }
 
-        if( offset >0){
-            pagination.prev={
-                page:page-1,
-                limit
-            }
-        }
-        res.status(200).json({success: true, data,pagination});
+        res.status(200).json({success: true, data, pagination});
     } 
     catch (err) {
-        res.status(500).json({success: false, message: err.message || "Some error occurred while retrieving all bookings"});
+        res.status(500).json({success: false, message: err.message || "Error retrieving bookings"});
     }
 };
 

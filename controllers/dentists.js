@@ -2,39 +2,24 @@ const Dentist = require("../models/Dentist");
 
 exports.getDentists = async (req, res) => {
     try {
-            
-            //Pagination
-            const page=parseInt(req.query.page,10)||1;
-            const limit=parseInt(req.query.limit,10)||25;
-            
-            const offset=(page-1)*limit;
-            const endIndex=page*limit;
-            const total=await Dentist.countAll();
-    
-            const data = await Dentist.getAll(limit,offset );
-    
-            
-            //Pagingation result
-            const pagination ={};
-    
-            if(endIndex<total){
-                pagination.next={
-                    page:page+1,
-                    limit
-                }
-            }
-    
-            if( offset >0){
-                pagination.prev={
-                    page:page-1,
-                    limit
-                }
-            }
-            res.status(200).json({success: true, data,pagination});
-        } 
-        catch (err) {
-            res.status(500).json({success: false, message: err.message || "Some error occurred while retrieving all dentists"});
+        const limit = parseInt(req.query.limit, 10) || 25;
+        const lastID = parseInt(req.query.lastID, 10) || 0;
+
+        const data = await Dentist.getAll(lastID, limit);
+
+        const pagination = {};
+        if (data.length > 0) {
+            pagination.next = {
+                lastID: data[data.length - 1].dentistID,
+                limit
+            };
         }
+
+        res.status(200).json({success: true, data, pagination});
+    } 
+    catch (err) {
+        res.status(500).json({success: false, message: err.message || "Error retrieving dentists"});
+    }
 };
 
 exports.getDentist = async (req, res) => {
