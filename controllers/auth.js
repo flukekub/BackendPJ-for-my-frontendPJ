@@ -44,38 +44,43 @@ exports.register = async (req, res, next) => {
 };
 
 exports.login = async (req, res, next) => {
-    const {email, password} = req.body;
+    try{
+        const {email, password} = req.body;
 
-    if (!email || !password) {
-        return res.status(400).json({success: false, msg: "Please provide an email and password"});
-    }
+        if (!email || !password) {
+            return res.status(400).json({success: false, msg: "Please provide an email and password"});
+        }
 
-    try {
-        let user;
         try {
-            user = await User.findByEmail(email);
-        } 
+            let user;
+            try {
+                user = await User.findByEmail(email);
+            } 
+            catch (err) {
+                return res.status(500).json({success: false, msg: "Server error"});
+            }
+
+            if (!user) {
+                return res.status(400).json({success: false, msg: "Invalid credentials"});
+            }
+
+            const isMatch = await user.matchPassword(password);
+
+            if (!isMatch) {
+                return res.status(401).json({success: false, msg: "Invalid credentials"});
+            }
+
+            // const token = user.getSignedJwtToken();
+            // res.status(200).json({success: true, token});
+            sendTokenResponse(user, 200, res);
+        }
         catch (err) {
-            return res.status(500).json({success: false, msg: "Server error"});
+            console.error("Login error:", err);
+            res.status(500).json({success: false, error: err.message});
         }
-
-        if (!user) {
-            return res.status(400).json({success: false, msg: "Invalid credentials"});
-        }
-
-        const isMatch = await user.matchPassword(password);
-
-        if (!isMatch) {
-            return res.status(401).json({success: false, msg: "Invalid credentials"});
-        }
-
-        // const token = user.getSignedJwtToken();
-        // res.status(200).json({success: true, token});
-        sendTokenResponse(user, 200, res);
-    }
+    } 
     catch (err) {
-        console.error("Login error:", err);
-        res.status(500).json({success: false, error: err.message});
+        res.status(401).json({success: false, message: "Cannot convert email or password to string"});
     }
 };
 
@@ -87,7 +92,6 @@ exports.logout = async (req, res, next) => {
 
     res.status(200).json({success: true, data: {}});
 };
-
 
 exports.getMe = async (req, res, next) => {
     try {

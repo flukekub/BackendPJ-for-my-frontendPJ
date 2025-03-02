@@ -7,9 +7,6 @@ const Booking = function (booking) {
     this.date = booking.date;
 };
 
-
-
-
 Booking.getAll = async (limit, offset) => {
     const query = "SELECT * FROM bookings ORDER BY bookingID LIMIT $1 OFFSET $2;";
 
