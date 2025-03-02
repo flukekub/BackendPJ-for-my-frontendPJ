@@ -287,7 +287,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"email\":\"iLoveKaruButAdmin@gmail.com\", \r\n    \"password\": \"1212312121\"\r\n}",
+							"raw": "{\r\n    \"email\":\"iLoveKaru@gmail.com\", \r\n    \"password\": \"1212312121\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -703,7 +703,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"userID\": \"12\",\r\n    \"dentistID\": \"3\",\r\n    \"date\": \"{{randomDate}}\"\r\n}\r\n",
+							"raw": "{\r\n    \"userID\": \"21\",\r\n    \"dentistID\": \"7\",\r\n    \"date\": \"{{randomDate}}\"\r\n}\r\n",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -832,6 +832,188 @@
 									"key": "bookingID",
 									"value": "3"
 								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get My Booking",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{URL}}/api/v1/bookings/me",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"bookings",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create My Booking",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"function getRandomDate(startDate, endDate) {\r",
+									"    const start = new Date(startDate);\r",
+									"    const end = new Date(endDate);\r",
+									"    const randomTime = start.getTime() + Math.random() * (end.getTime() - start.getTime());\r",
+									"    return new Date(randomTime).toISOString().split('T')[0];\r",
+									"}\r",
+									"\r",
+									"const randomDate = getRandomDate('2020-01-01', '2025-12-31');\r",
+									"\r",
+									"pm.environment.set('randomDate', randomDate);\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"dentistID\": \"7\",\r\n    \"date\": \"{{randomDate}}\"\r\n}\r\n",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/api/v1/bookings/me",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"bookings",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update My Booking",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"function getRandomDate(startDate, endDate) {\r",
+									"    const start = new Date(startDate);\r",
+									"    const end = new Date(endDate);\r",
+									"    const randomTime = start.getTime() + Math.random() * (end.getTime() - start.getTime());\r",
+									"    return new Date(randomTime).toISOString().split('T')[0];\r",
+									"}\r",
+									"\r",
+									"const randomDate = getRandomDate('2020-01-01', '2025-12-31');\r",
+									"\r",
+									"pm.environment.set('randomDate', randomDate);\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"dentistID\": \"7\",\r\n    \"date\": \"{{randomDate}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{URL}}/api/v1/bookings/me",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"bookings",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete My Booking",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{TOKEN}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{URL}}/api/v1/bookings/me",
+							"host": [
+								"{{URL}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"bookings",
+								"me"
 							]
 						}
 					},
