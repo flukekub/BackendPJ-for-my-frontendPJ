@@ -1,0 +1,77 @@
+@startuml
+
+        participant User
+    participant Admin
+    participant AuthAPI
+    participant DentistAPI
+    participant BookingAPI
+    participant UserAPI
+    participant Database
+
+    
+    User->>AuthAPI: POST /api/v1/auth/login (email, password)
+    AuthAPI->>Database: Validate user credentials
+    Database-->>AuthAPI: Valid user
+    AuthAPI-->>User: Login success (JWT Token)
+
+    
+    User->>DentistAPI: GET /api/v1/dentists
+    DentistAPI->>Database: Fetch available dentists
+    Database-->>DentistAPI: List of dentists
+    DentistAPI-->>User: Return available dentists
+
+    User->>BookingAPI: POST /api/v1/bookings (dentistID, date, time)
+    BookingAPI->>Database: Create new booking
+    Database-->>BookingAPI: Booking confirmed
+    BookingAPI-->>User: Booking success (confirmation)
+
+    
+    User->>BookingAPI: DELETE /api/v1/bookings/:bookingID
+    BookingAPI->>Database: Remove booking
+    Database-->>BookingAPI: Booking deleted
+    BookingAPI-->>User: Booking cancellation confirmed
+
+   
+    Admin->>AuthAPI: POST /api/v1/auth/login (email, password)
+    AuthAPI->>Database: Validate admin credentials
+    Database-->>AuthAPI: Valid admin
+    AuthAPI-->>Admin: Login success (JWT Token)
+
+    
+    Admin->>UserAPI: GET /api/v1/users
+    UserAPI->>Database: Fetch all users
+    Database-->>UserAPI: List of users
+    UserAPI-->>Admin: Return users list
+
+    Admin->>UserAPI: DELETE /api/v1/users/:userID
+    UserAPI->>Database: Remove user record
+    Database-->>UserAPI: User deleted
+    UserAPI-->>Admin: User removed success
+
+   
+    Admin->>DentistAPI: POST /api/v1/dentists (name, specialty, schedule)
+    DentistAPI->>Database: Save new dentist
+    Database-->>DentistAPI: Dentist added
+    DentistAPI-->>Admin: Dentist added success
+
+    Admin->>DentistAPI: PUT /api/v1/dentists/:dentistID (update details)
+    DentistAPI->>Database: Update dentist info
+    Database-->>DentistAPI: Update successful
+    DentistAPI-->>Admin: Dentist updated
+
+    Admin->>DentistAPI: DELETE /api/v1/dentists/:dentistID
+    DentistAPI->>Database: Remove dentist record
+    Database-->>DentistAPI: Dentist deleted
+    DentistAPI-->>Admin: Dentist removed success
+
+  
+    Admin->>BookingAPI: GET /api/v1/bookings
+    BookingAPI->>Database: Fetch all bookings
+    Database-->>BookingAPI: List of all bookings
+    BookingAPI-->>Admin: Return bookings list
+
+    Admin->>BookingAPI: DELETE /api/v1/bookings/:bookingID
+    BookingAPI->>Database: Delete booking record
+    Database-->>BookingAPI: Booking deleted
+    BookingAPI-->>Admin: Booking cancelled success
+@enduml

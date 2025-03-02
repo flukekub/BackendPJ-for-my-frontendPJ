@@ -1,0 +1,47 @@
+@startuml
+left to right direction
+actor User
+actor Admin
+
+rectangle "Authentication & Users" {
+     (Register) <-- User
+     (Login) <-- User 
+     (Logout) <-- User 
+     (View Profile) <-- User 
+
+    Admin --> (View All Users)
+    Admin --> (View Only Users)
+    Admin --> (View Only Admins)
+    Admin --> (Update User)
+    Admin --> (Delete User)
+    Admin --> (Login)
+    Admin --> (Logout)
+    Admin --> (View Profile) 
+    Admin --> (Register)
+}
+
+rectangle "Booking Management" {
+    (Create Booking) <-- User 
+    (View Bookings) <-- User 
+    (Update Booking) <-- User 
+    (Cancel Booking) <-- User 
+
+    Admin --> (Manage All Bookings)
+    Admin --> (View Bookings)
+    
+}
+
+rectangle "Dentist Management" {
+     (View Dentists) <-- User  
+     (View Dentist Details) <-- User 
+     (Book Dentist Appointment) <-- User 
+
+    Admin --> (Add Dentist)
+    Admin --> (Update Dentist)
+    Admin --> (Delete Dentist)
+    Admin -->  (View Dentists)
+    Admin --> (View Dentist Details)
+    Admin --> (Book Dentist Appointment)     
+}
+@enduml
+
