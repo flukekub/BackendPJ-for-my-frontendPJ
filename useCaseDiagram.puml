@@ -21,27 +21,30 @@ rectangle "Authentication & Users" {
 }
 
 rectangle "Booking Management" {
-    (Create Booking) <-- User 
-    (View Bookings) <-- User 
-    (Update Booking) <-- User 
-    (Cancel Booking) <-- User 
+    (Create my Booking) <-- User 
+    (View my Bookings) <-- User 
 
-    Admin --> (Manage All Bookings)
-    Admin --> (View Bookings)
+    (Update my Booking) <-- User 
+    (Delete my Booking) <-- User 
+    Admin --> (View my Bookings)
+   
+    Admin --> (Manage Bookings)
+    Admin --> (Create my Booking)
+    Admin --> (Update my Booking)
+    Admin --> (Delete my Booking) 
+   
     
 }
 
 rectangle "Dentist Management" {
      (View Dentists) <-- User  
-     (View Dentist Details) <-- User 
-     (Book Dentist Appointment) <-- User 
 
     Admin --> (Add Dentist)
     Admin --> (Update Dentist)
     Admin --> (Delete Dentist)
     Admin -->  (View Dentists)
-    Admin --> (View Dentist Details)
-    Admin --> (Book Dentist Appointment)     
+   
+    
 }
 @enduml
 

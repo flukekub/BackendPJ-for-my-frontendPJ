@@ -1,4 +1,5 @@
-const sql = require("../config/pgdb");
+const supabase = require('../config/db.js');
+
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
@@ -27,17 +28,25 @@ User.getAll = async (lastID, limit) => {
 };
 
 User.getAllUsers = async (lastID, limit) => {
-    const query = "SELECT * FROM users WHERE role = 'user' AND userID > $1 ORDER BY userID LIMIT $2;";
-
     try {
-        const res = await sql.query(query, [lastID, limit]);
+        // ใช้ supabase เพื่อ query ข้อมูลจาก table 'users'
+        const { data, error } = await supabase
+            .from('users') // กำหนด table ที่ต้องการดึงข้อมูล
+            .select('*') // เลือกทุกคอลัมน์
+            .eq('role', 'user') // เงื่อนไข role = 'user'
+            .gt('userID', lastID) // เงื่อนไข userID > lastID
+            .order('userID', { ascending: true }) // เรียงลำดับ userID
+            .limit(limit); // จำกัดจำนวนผลลัพธ์ตาม limit ที่ระบุ
 
-        console.log("All only users:", res.rows);
-        return res.rows;
-    } 
-    catch (err) {
+        if (error) {
+            throw new Error(error.message); // ถ้ามี error ให้ throw ขึ้นไป
+        }
+
+        console.log("All only users:", data); // แสดงผลข้อมูล
+        return data; // คืนค่าผลลัพธ์
+    } catch (err) {
         console.error("Get only users error:", err);
-        throw err;
+        throw err; // โยน error ขึ้นไป
     }
 };
 
@@ -76,40 +85,54 @@ User.findById = async (id) => {
 };
 
 User.findByEmail = async (email) => {
-    const query = "SELECT * FROM users WHERE email = $1;";
-    const values = [email];
+    const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email)
+        .single();  // ใช้ .single() เพื่อให้ Supabase คืนค่าผลลัพธ์แค่แถวเดียว
 
-    try {
-        const res = await sql.query(query, values);
-
-        if (res.rows.length === 0) {
-            throw {kind: "not_found"};
+    if (error) {
+        console.log("Get user error:", error);
+        if (error.code === 'PGRST100') {
+            throw { kind: 'not_found' };  // สามารถปรับตามความต้องการ
         }
-        console.log("Found user:", res.rows[0]);
-        return new User(res.rows[0]);
-    } 
-    catch (err) {
-        console.log("Get user error:", err);
-        throw err;
+        throw error;
     }
+
+    console.log("Found user:", data);
+    return new User(data);  // สร้าง User จากข้อมูลที่ Supabase คืนมา
 };
+
 
 User.create = async (newUser) => {
     const salt = await bcrypt.genSalt(10);
     newUser.password = await bcrypt.hash(newUser.password, salt);
 
-    const query = "INSERT INTO users (name, email, phone, password, role) VALUES ($1, $2, $3, $4, $5) RETURNING *;";
-    const values = [newUser.name, newUser.email, newUser.phone, newUser.password, newUser.role];
-
     try {
-        const res = await sql.query(query, values);
+        // ใช้ supabase เพื่อ insert ข้อมูลใหม่ลงใน table 'users'
+        const { data, error } = await supabase
+            .from('users') // กำหนด table ที่จะ insert ข้อมูล
+            .insert([
+                {
+                    name: newUser.name,
+                    email: newUser.email,
+                    phone: newUser.phone,
+                    password: newUser.password,
+                    role: newUser.role
+                }
+            ])
+            .select();
+            
+        if (error) {
+            console.log("Insert error:", error);
+            throw new Error(error.message); // ถ้ามี error ให้ throw ขึ้นไป
+        }
 
-        console.log("Created user:", res.rows[0]);
-        return new User(res.rows[0]);
-    } 
-    catch (err) {
+        console.log("Created user:", data); // แสดงผลข้อมูลที่สร้าง
+        return new User(data); // คืนค่าผู้ใช้ใหม่ที่ถูกสร้างขึ้น
+    } catch (err) {
         console.log("Create user error:", err);
-        throw err;
+        throw err; // โยน error ขึ้นไป
     }
 };
 

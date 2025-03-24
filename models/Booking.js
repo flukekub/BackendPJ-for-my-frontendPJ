@@ -1,4 +1,4 @@
-const sql = require("../config/pgdb");
+const sql = require('../config/db.js');
 
 const Booking = function (booking) {
     this.bookingID = booking.bookingid | booking.bookingID;
@@ -11,10 +11,10 @@ Booking.getAll = async (lastID, limit) => {
     const query = "SELECT * FROM bookings WHERE bookingID > $1 ORDER BY bookingID LIMIT $2;";
 
     try {
-        const res = await sql.query(query, [lastID, limit]);
+        const res = await sql `SELECT * FROM bookings WHERE bookingID > $1 ORDER BY bookingID LIMIT $2` ;
 
-        console.log("All bookings:", res.rows);
-        return res.rows;
+        
+        return res;
     } 
     catch (err) {
         console.error("Get bookings error:", err);

@@ -1,4 +1,5 @@
-const sql = require("../config/pgdb");
+const supabase = require('../config/db.js');
+
 
 const Dentist = function (dentist) {
     this.dentistID = dentist.dentistid | dentist.dentistID;
@@ -7,19 +8,16 @@ const Dentist = function (dentist) {
     this.expertise = dentist.expertise;
 };
 
-Dentist.getAll = async (lastID, limit) => {
-    const query = "SELECT * FROM dentists WHERE dentistID > $1 ORDER BY dentistID LIMIT $2;";
+Dentist.getAll = async () => {
+    const { data, error } = await supabase
+        .from('dentists') // ใช้ method from เพื่อติดต่อกับ table
+        .select('*'); // เลือกทุกคอลัมน์
 
-    try {
-        const res = await sql.query(query, [lastID, limit]);
-
-        console.log("All dentists:", res.rows);
-        return res.rows;
-    } 
-    catch (err) {
-        console.error("Get dentists error:", err);
-        throw err;
+    if (error) {
+        throw new Error(error.message); // ถ้ามี error ให้ throw ขึ้นไป
     }
+
+    return data; // คืนค่าข้อมูลที่ได้จากฐานข้อมูล
 };
 
 Dentist.findById = async (id) => {
