@@ -58,7 +58,8 @@ Booking.findByUserId = async (id) => {
         const { data, error } = await supabase
             .from('bookings')
             .select('*')
-            .eq('userid', id);
+            .eq('userid', id)
+            .single();
 
         if (error) {
             throw error;

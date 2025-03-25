@@ -124,7 +124,7 @@ exports.getMeBooking = async (req, res, next) => {
     try {
         const booking = await Booking.findByUserId(userID);
 
-        res.status(200).json({success: true, data: booking,});
+        res.status(200).json({success: true, data: booking});
     } 
     catch (err) {
         console.error("Error fetching booking:", err);
