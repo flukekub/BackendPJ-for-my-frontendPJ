@@ -13,13 +13,20 @@ const User = function (user) {
 };
 
 User.getAll = async (lastID, limit) => {
-    const query = "SELECT * FROM users WHERE userID > $1 ORDER BY userID LIMIT $2;";
-
     try {
-        const res = await sql.query(query, [lastID, limit]);
+        const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .gt('userid', lastID)
+            .order('userid', { ascending: true })
+            .limit(limit);
 
-        console.log("All users:", res.rows);
-        return res.rows;
+        if (error) {
+            throw new Error(error.message);
+        }
+
+        console.log("All users:", data);
+        return data;
     } 
     catch (err) {
         console.error("Get all users error:", err);
@@ -29,35 +36,42 @@ User.getAll = async (lastID, limit) => {
 
 User.getAllUsers = async (lastID, limit) => {
     try {
-        // ใช้ supabase เพื่อ query ข้อมูลจาก table 'users'
         const { data, error } = await supabase
-            .from('users') // กำหนด table ที่ต้องการดึงข้อมูล
-            .select('*') // เลือกทุกคอลัมน์
-            .eq('role', 'user') // เงื่อนไข role = 'user'
-            .gt('userID', lastID) // เงื่อนไข userID > lastID
-            .order('userID', { ascending: true }) // เรียงลำดับ userID
-            .limit(limit); // จำกัดจำนวนผลลัพธ์ตาม limit ที่ระบุ
+            .from('users')
+            .select('*')
+            .eq('role', 'user')
+            .gt('userid', lastID)
+            .order('userid', { ascending: true })
+            .limit(limit);
 
         if (error) {
-            throw new Error(error.message); // ถ้ามี error ให้ throw ขึ้นไป
+            throw new Error(error.message);
         }
 
-        console.log("All only users:", data); // แสดงผลข้อมูล
-        return data; // คืนค่าผลลัพธ์
+        console.log("All only users:", data);
+        return data;
     } catch (err) {
         console.error("Get only users error:", err);
-        throw err; // โยน error ขึ้นไป
+        throw err;
     }
 };
 
 User.getAllAdmins = async (lastID, limit) => {
-    const query = "SELECT * FROM users WHERE role = 'admin' AND userID > $1 ORDER BY userID LIMIT $2;";
-
     try {
-        const res = await sql.query(query, [lastID, limit]);
+        const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('role', 'admin')
+            .gt('userid', lastID)
+            .order('userid', { ascending: true })
+            .limit(limit);
 
-        console.log("All only admins:", res.rows);
-        return res.rows;
+        if (error) {
+            throw new Error(error.message);
+        }
+
+        console.log("All only admins:", data);
+        return data;
     } 
     catch (err) {
         console.error("Get only admins error:", err);
@@ -66,17 +80,22 @@ User.getAllAdmins = async (lastID, limit) => {
 };
 
 User.findById = async (id) => {
-    const query = "SELECT * FROM users WHERE userID = $1;";
-    const values = [id];
-
     try {
-        const res = await sql.query(query, values);
+        const { data, error } = await supabase
+            .from('users')
+            .select('*')
+            .eq('userid', id)
+            .single();
 
-        if (res.rows.length === 0) {
-            throw {kind: "not_found"};
+        if (error) {
+            if (error.code === 'PGRST116') {
+                throw { kind: "not_found" };
+            }
+            throw error;
         }
-        console.log("Found user:", res.rows[0]);
-        return new User(res.rows[0]);
+
+        console.log("Found user:", data);
+        return new User(data);
     } 
     catch (err) {
         console.log("Get user error:", err);
@@ -89,29 +108,27 @@ User.findByEmail = async (email) => {
         .from('users')
         .select('*')
         .eq('email', email)
-        .single();  // ใช้ .single() เพื่อให้ Supabase คืนค่าผลลัพธ์แค่แถวเดียว
+        .single();
 
     if (error) {
         console.log("Get user error:", error);
-        if (error.code === 'PGRST100') {
-            throw { kind: 'not_found' };  // สามารถปรับตามความต้องการ
+        if (error.code === 'PGRST116') {
+            throw { kind: 'not_found' };
         }
         throw error;
     }
 
     console.log("Found user:", data);
-    return new User(data);  // สร้าง User จากข้อมูลที่ Supabase คืนมา
+    return new User(data);
 };
-
 
 User.create = async (newUser) => {
     const salt = await bcrypt.genSalt(10);
     newUser.password = await bcrypt.hash(newUser.password, salt);
 
     try {
-        // ใช้ supabase เพื่อ insert ข้อมูลใหม่ลงใน table 'users'
         const { data, error } = await supabase
-            .from('users') // กำหนด table ที่จะ insert ข้อมูล
+            .from('users')
             .insert([
                 {
                     name: newUser.name,
@@ -125,14 +142,14 @@ User.create = async (newUser) => {
             
         if (error) {
             console.log("Insert error:", error);
-            throw new Error(error.message); // ถ้ามี error ให้ throw ขึ้นไป
+            throw new Error(error.message);
         }
 
-        console.log("Created user:", data); // แสดงผลข้อมูลที่สร้าง
-        return new User(data); // คืนค่าผู้ใช้ใหม่ที่ถูกสร้างขึ้น
+        console.log("Created user:", data);
+        return new User(data[0]);
     } catch (err) {
         console.log("Create user error:", err);
-        throw err; // โยน error ขึ้นไป
+        throw err;
     }
 };
 
@@ -144,21 +161,32 @@ User.updateById = async (id, user) => {
         passwordHash = await bcrypt.hash(user.password, salt);
     }
 
-    const query = `
-        UPDATE users 
-        SET name = $1, email = $2, phone = $3, password = $4, role = $5
-        WHERE userID = $6 RETURNING *;
-    `;
-    const values = [user.name, user.email, user.phone, passwordHash, user.role, id];
-
     try {
-        const res = await sql.query(query, values);
+        const { data, error } = await supabase
+            .from('users')
+            .update({
+                name: user.name, 
+                email: user.email, 
+                phone: user.phone, 
+                password: passwordHash, 
+                role: user.role
+            })
+            .eq('userid', id)
+            .select();
 
-        if (res.rowCount === 0) {
-            throw {kind: "not_found"};
+        if (error) {
+            if (error.code === 'PGRST116') {
+                throw { kind: "not_found" };
+            }
+            throw error;
         }
-        console.log("Updated user:", res.rows[0]);
-        return new User(res.rows[0]);
+
+        if (!data || data.length === 0) {
+            throw { kind: "not_found" };
+        }
+
+        console.log("Updated user:", data[0]);
+        return new User(data[0]);
     } 
     catch (err) {
         console.log("Update user error:", err);
@@ -167,17 +195,23 @@ User.updateById = async (id, user) => {
 };
 
 User.remove = async (id) => {
-    const query = "DELETE FROM users WHERE userID = $1 RETURNING *;";
-    const values = [id];
-
     try {
-        const res = await sql.query(query, values);
+        const { data, error } = await supabase
+            .from('users')
+            .delete()
+            .eq('userid', id)
+            .select();
 
-        if (res.rowCount === 0) {
-            throw {kind: "not_found"};
+        if (error) {
+            throw error;
         }
+
+        if (!data || data.length === 0) {
+            throw { kind: "not_found" };
+        }
+
         console.log("Deleted user with ID:", id);
-        return res.rows;
+        return data;
     } 
     catch (err) {
         console.log("Delete user error:", err);

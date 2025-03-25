@@ -1,6 +1,5 @@
 const supabase = require('../config/db.js');
 
-
 const Dentist = function (dentist) {
     this.dentistID = dentist.dentistid | dentist.dentistID;
     this.name = dentist.name;
@@ -9,29 +8,41 @@ const Dentist = function (dentist) {
 };
 
 Dentist.getAll = async () => {
-    const { data, error } = await supabase
-        .from('dentists') // ใช้ method from เพื่อติดต่อกับ table
-        .select('*'); // เลือกทุกคอลัมน์
+    try {
+        const { data, error } = await supabase
+            .from('dentists')
+            .select('*');
 
-    if (error) {
-        throw new Error(error.message); // ถ้ามี error ให้ throw ขึ้นไป
+        if (error) {
+            throw new Error(error.message);
+        }
+
+        console.log("All dentists:", data);
+        return data;
+    } 
+    catch (err) {
+        console.error("Get all dentists error:", err);
+        throw err;
     }
-
-    return data; // คืนค่าข้อมูลที่ได้จากฐานข้อมูล
 };
 
 Dentist.findById = async (id) => {
-    const query = "SELECT * FROM dentists WHERE DentistID = $1;";
-    const values = [id];
-
     try {
-        const res = await sql.query(query, values);
+        const { data, error } = await supabase
+            .from('dentists')
+            .select('*')
+            .eq('dentistid', id)
+            .single();
 
-        if (res.rows.length === 0) {
-            throw {kind: "not_found"};
+        if (error) {
+            if (error.code === 'PGRST116') {
+                throw { kind: "not_found" };
+            }
+            throw error;
         }
-        console.log("Found dentist:", res.rows[0]);
-        return res.rows[0];
+
+        console.log("Found dentist:", data);
+        return data;
     } 
     catch (err) {
         console.log("Get dentist error:", err);
@@ -40,14 +51,25 @@ Dentist.findById = async (id) => {
 };
 
 Dentist.create = async (newDentist) => {
-    const query = "INSERT INTO dentists (Name, Experience, Expertise) VALUES ($1, $2, $3) RETURNING *;";
-    const values = [newDentist.name, newDentist.experience, newDentist.expertise];
-
     try {
-        const res = await sql.query(query, values);
+        const { data, error } = await supabase
+            .from('dentists')
+            .insert([
+                {
+                    name: newDentist.name,
+                    experience: newDentist.experience,
+                    expertise: newDentist.expertise
+                }
+            ])
+            .select();
+            
+        if (error) {
+            console.log("Insert error:", error);
+            throw new Error(error.message);
+        }
 
-        console.log("Created dentist:", res.rows[0]);
-        return res.rows[0];
+        console.log("Created dentist:", data[0]);
+        return data[0];
     } 
     catch (err) {
         console.log("Create dentist error:", err);
@@ -56,21 +78,30 @@ Dentist.create = async (newDentist) => {
 };
 
 Dentist.updateById = async (id, dentist) => {
-    const query = `
-        UPDATE dentists 
-        SET Name = $1, Experience = $2, Expertise = $3 
-        WHERE DentistID = $4 RETURNING *;
-    `;
-    const values = [dentist.name, dentist.experience, dentist.expertise, id];
-
     try {
-        const res = await sql.query(query, values);
+        const { data, error } = await supabase
+            .from('dentists')
+            .update({
+                name: dentist.name,
+                experience: dentist.experience,
+                expertise: dentist.expertise
+            })
+            .eq('dentistid', id)
+            .select();
 
-        if (res.rowCount === 0) {
-            throw {kind: "not_found"};
+        if (error) {
+            if (error.code === 'PGRST116') {
+                throw { kind: "not_found" };
+            }
+            throw error;
         }
-        console.log("Updated dentist:", res.rows[0]);
-        return res.rows[0];
+
+        if (!data || data.length === 0) {
+            throw { kind: "not_found" };
+        }
+
+        console.log("Updated dentist:", data[0]);
+        return data[0];
     } 
     catch (err) {
         console.log("Update dentist error:", err);
@@ -79,17 +110,23 @@ Dentist.updateById = async (id, dentist) => {
 };
 
 Dentist.remove = async (id) => {
-    const query = "DELETE FROM dentists WHERE dentistID = $1 RETURNING *;";
-    const values = [id];
-
     try {
-        const res = await sql.query(query, values);
-        
-        if (res.rowCount === 0) {
-            throw {kind: "not_found"};
+        const { data, error } = await supabase
+            .from('dentists')
+            .delete()
+            .eq('dentistid', id)
+            .select();
+
+        if (error) {
+            throw error;
         }
+
+        if (!data || data.length === 0) {
+            throw { kind: "not_found" };
+        }
+
         console.log("Deleted dentist with ID:", id);
-        return res.rows;
+        return data;
     } 
     catch (err) {
         console.log("Delete dentist error:", err);

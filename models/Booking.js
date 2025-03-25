@@ -1,4 +1,4 @@
-const sql = require('../config/db.js');
+const supabase = require('../config/db.js');
 
 const Booking = function (booking) {
     this.bookingID = booking.bookingid | booking.bookingID;
@@ -8,13 +8,20 @@ const Booking = function (booking) {
 };
 
 Booking.getAll = async (lastID, limit) => {
-    const query = "SELECT * FROM bookings WHERE bookingID > $1 ORDER BY bookingID LIMIT $2;";
-
     try {
-        const res = await sql `SELECT * FROM bookings WHERE bookingID > $1 ORDER BY bookingID LIMIT $2` ;
+        const { data, error } = await supabase
+            .from('bookings')
+            .select('*')
+            .gt('bookingid', lastID)
+            .order('bookingid', { ascending: true })
+            .limit(limit);
 
-        
-        return res;
+        if (error) {
+            throw new Error(error.message);
+        }
+
+        console.log("All bookings:", data);
+        return data;
     } 
     catch (err) {
         console.error("Get bookings error:", err);
@@ -23,17 +30,22 @@ Booking.getAll = async (lastID, limit) => {
 };
 
 Booking.findById = async (id) => {
-    const query = "SELECT * FROM bookings WHERE bookingID = $1;";
-    const values = [id];
-
     try {
-        const res = await sql.query(query, values);
+        const { data, error } = await supabase
+            .from('bookings')
+            .select('*')
+            .eq('bookingid', id)
+            .single();
 
-        if (res.rows.length === 0) {
-            throw {kind: "not_found"};
+        if (error) {
+            if (error.code === 'PGRST116') {
+                throw { kind: "not_found" };
+            }
+            throw error;
         }
-        console.log("Found booking:", res.rows[0]);
-        return res.rows[0];
+
+        console.log("Found booking:", data);
+        return data;
     } 
     catch (err) {
         console.log("Get booking error:", err);
@@ -42,17 +54,22 @@ Booking.findById = async (id) => {
 };
 
 Booking.findByUserId = async (id) => {
-    const query = "SELECT * FROM bookings WHERE userID = $1;";
-    const values = [id];
-
     try {
-        const res = await sql.query(query, values);
+        const { data, error } = await supabase
+            .from('bookings')
+            .select('*')
+            .eq('userid', id);
 
-        if (res.rows.length === 0) {
-            throw {kind: "not_found"};
+        if (error) {
+            throw error;
         }
-        console.log("Found booking:", res.rows[0]);
-        return res.rows[0];
+
+        if (data.length === 0) {
+            throw { kind: "not_found" };
+        }
+
+        console.log("Found bookings for user:", data);
+        return data;
     } 
     catch (err) {
         console.log("Get booking error:", err);
@@ -61,17 +78,23 @@ Booking.findByUserId = async (id) => {
 };
 
 Booking.findByDentistIdAndDate = async (id, date) => {
-    const query = "SELECT * FROM bookings WHERE dentistID = $1 AND date = $2;";
-    const values = [id, date];
-
     try {
-        const res = await sql.query(query, values);
+        const { data, error } = await supabase
+            .from('bookings')
+            .select('*')
+            .eq('dentistid', id)
+            .eq('date', date)
+            .single();
 
-        if (res.rows.length === 0) {
-            throw {kind: "not_found"};
+        if (error) {
+            if (error.code === 'PGRST116') {
+                throw { kind: "not_found" };
+            }
+            throw error;
         }
-        console.log("Found booking:", res.rows[0]);
-        return res.rows[0];
+
+        console.log("Found booking:", data);
+        return data;
     } 
     catch (err) {
         console.log("Get booking error:", err);
@@ -80,14 +103,25 @@ Booking.findByDentistIdAndDate = async (id, date) => {
 };
 
 Booking.create = async (newBooking) => {
-    const query = "INSERT INTO bookings (userID, dentistID, date) VALUES ($1, $2, $3) RETURNING *;";
-    const values = [newBooking.userID, newBooking.dentistID, newBooking.date];
-
     try {
-        const res = await sql.query(query, values);
+        const { data, error } = await supabase
+            .from('bookings')
+            .insert([
+                {
+                    userid: newBooking.userID,
+                    dentistid: newBooking.dentistID,
+                    date: newBooking.date
+                }
+            ])
+            .select();
+            
+        if (error) {
+            console.log("Insert error:", error);
+            throw new Error(error.message);
+        }
 
-        console.log("Created booking:", res.rows[0]);
-        return res.rows[0];
+        console.log("Created booking:", data[0]);
+        return data[0];
     } 
     catch (err) {
         console.log("Create booking error:", err);
@@ -96,21 +130,30 @@ Booking.create = async (newBooking) => {
 };
 
 Booking.updateById = async (id, booking) => {
-    const query = `
-        UPDATE bookings 
-        SET userID = $1, dentistID = $2, date = $3 
-        WHERE bookingID = $4 RETURNING *;
-    `;
-    const values = [booking.userID, booking.dentistID, booking.date, id];
-
     try {
-        const res = await sql.query(query, values);
+        const { data, error } = await supabase
+            .from('bookings')
+            .update({
+                userid: booking.userID,
+                dentistid: booking.dentistID,
+                date: booking.date
+            })
+            .eq('bookingid', id)
+            .select();
 
-        if (res.rowCount === 0) {
-            throw {kind: "not_found"};
+        if (error) {
+            if (error.code === 'PGRST116') {
+                throw { kind: "not_found" };
+            }
+            throw error;
         }
-        console.log("Updated booking:", res.rows[0]);
-        return res.rows[0];
+
+        if (!data || data.length === 0) {
+            throw { kind: "not_found" };
+        }
+
+        console.log("Updated booking:", data[0]);
+        return data[0];
     } 
     catch (err) {
         console.log("Update booking error:", err);
@@ -119,17 +162,23 @@ Booking.updateById = async (id, booking) => {
 };
 
 Booking.remove = async (id) => {
-    const query = "DELETE FROM bookings WHERE bookingID = $1 RETURNING *;";
-    const values = [id];
-
     try {
-        const res = await sql.query(query, values);
+        const { data, error } = await supabase
+            .from('bookings')
+            .delete()
+            .eq('bookingid', id)
+            .select();
 
-        if (res.rowCount === 0) {
-            throw {kind: "not_found"};
+        if (error) {
+            throw error;
         }
+
+        if (!data || data.length === 0) {
+            throw { kind: "not_found" };
+        }
+
         console.log("Deleted booking with ID:", id);
-        return res.rows;
+        return data;
     } 
     catch (err) {
         console.log("Delete booking error:", err);
